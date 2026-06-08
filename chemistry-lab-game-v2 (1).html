@@ -1,0 +1,2493 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مختبر العناصر: مهمة إنقاذ التفاعل الكيميائي</title>
+
+<!-- ARIA live region للإعلانات الفورية لقارئات الشاشة -->
+<div aria-live="polite" aria-atomic="true" id="sr-announce" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;"></div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;500;700;900&display=swap');
+
+/* ===== متغيرات CSS - تدعم وضع التباين العالي ===== */
+:root {
+  --dark-bg: #050d1a;
+  --dark-card: #091525;
+  --dark-panel: #0d1f35;
+  --neon-green: #00ff88;
+  --neon-green-dim: #00cc6a;
+  --neon-blue: #00cfff;
+  --neon-blue-dim: #0099cc;
+  --amber: #ffb700;
+  --amber-dim: #cc9200;
+  --danger: #ff4466;
+  --white: #f0f8ff;
+  --white-dim: #a8c0d6;
+  --glow-green: 0 0 10px #00ff8855, 0 0 30px #00ff8830;
+  --glow-blue: 0 0 10px #00cfff55, 0 0 30px #00cfff30;
+  --glow-amber: 0 0 10px #ffb70055, 0 0 30px #ffb70030;
+  --border-dim: rgba(0, 207, 255, 0.2);
+  --font-main: 'Cairo', 'Tajawal', sans-serif;
+  --font-size-base: 1rem;
+  --focus-outline: 3px solid #ffb700;
+  --focus-offset: 3px;
+}
+
+/* وضع سهولة الوصول */
+body.accessible-mode {
+  --font-size-base: 1.15rem;
+  --dark-bg: #020810;
+  --dark-card: #061020;
+  --neon-green: #00ff99;
+  --neon-blue: #33d6ff;
+  --amber: #ffc020;
+  --white: #ffffff;
+  --white-dim: #cce0f0;
+}
+
+body.accessible-mode .option-btn,
+body.accessible-mode .coeff-btn,
+body.accessible-mode .btn {
+  min-height: 56px;
+  font-size: 1.1rem;
+}
+
+body.accessible-mode .stage-card {
+  border-width: 2px;
+}
+
+/* تفعيل reduce-motion تلقائياً */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .particle { display: none; }
+}
+
+/* تباين عالي لنظام التشغيل */
+@media (forced-colors: active) {
+  .option-btn, .coeff-btn, .btn {
+    border: 2px solid ButtonText !important;
+  }
+  .option-btn.correct { border-color: Highlight !important; }
+  .option-btn.wrong { border-color: Mark !important; }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-main);
+  font-size: var(--font-size-base);
+  background: var(--dark-bg);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  direction: rtl;
+}
+
+/* فوكس واضح لجميع العناصر التفاعلية */
+:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+  border-radius: 4px;
+}
+
+/* ===== شريط إمكانية الوصول السريع ===== */
+.a11y-bar {
+  background: rgba(5, 13, 26, 0.97);
+  border-bottom: 1px solid rgba(0,207,255,0.15);
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  font-size: 0.82rem;
+}
+
+.a11y-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 4px 14px;
+  color: var(--white-dim);
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.a11y-btn:hover, .a11y-btn.active {
+  background: rgba(0,207,255,0.15);
+  border-color: var(--neon-blue);
+  color: var(--neon-blue);
+}
+
+.a11y-label {
+  color: var(--white-dim);
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+/* ===== خلفية متحركة ===== */
+.bg-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: float-particle linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes float-particle {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.3; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+}
+
+/* ===== الحاوية الرئيسية ===== */
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== رأس الصفحة ===== */
+#game-header {
+  display: none;
+  background: rgba(9, 21, 37, 0.97);
+  border-bottom: 1px solid var(--border-dim);
+  padding: 10px 20px;
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.game-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--neon-green);
+  text-shadow: var(--glow-green);
+  white-space: nowrap;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 183, 0, 0.1);
+  border: 1px solid rgba(255, 183, 0, 0.3);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-weight: 700;
+  color: var(--amber);
+  font-size: 0.95rem;
+}
+
+.stage-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--white-dim);
+  font-size: 0.85rem;
+  margin-right: auto;
+}
+
+/* ===== شريط التقدم ===== */
+.progress-bar-wrapper {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  margin-top: 8px;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-green));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px var(--neon-green);
+}
+
+/* ===== الشاشات ===== */
+.screen {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  min-height: calc(100vh - 120px);
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* ===== شاشة البداية ===== */
+#screen-start {
+  background: radial-gradient(ellipse at center, #0a1f3a 0%, var(--dark-bg) 70%);
+}
+
+.start-atom-svg {
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 20px #00cfff66);
+}
+
+.start-title {
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.start-title span.lab {
+  color: var(--neon-green);
+  text-shadow: var(--glow-green);
+}
+
+.start-title span.mission {
+  color: var(--neon-blue);
+  text-shadow: var(--glow-blue);
+}
+
+.start-subtitle {
+  color: var(--white-dim);
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  color: var(--neon-blue);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.name-input {
+  background: rgba(0, 207, 255, 0.07);
+  border: 2px solid rgba(0, 207, 255, 0.3);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-family: var(--font-main);
+  font-size: 1.1rem;
+  color: var(--white);
+  direction: rtl;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  outline: none;
+  width: 100%;
+}
+
+.name-input:focus {
+  border-color: var(--neon-blue);
+  box-shadow: var(--glow-blue);
+  outline: var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.name-input::placeholder { color: rgba(255,255,255,0.3); }
+
+.name-input[aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 10px rgba(255,68,102,0.3);
+}
+
+.input-error {
+  color: var(--danger);
+  font-size: 0.88rem;
+  margin-top: 4px;
+  display: none;
+}
+.input-error.show { display: block; }
+
+/* ===== خصائص اللعبة (بطاقات المميزات) ===== */
+.features-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 16px 0 28px;
+  max-width: 520px;
+}
+
+.feature-chip {
+  background: rgba(0,207,255,0.07);
+  border: 1px solid rgba(0,207,255,0.2);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  color: var(--white-dim);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ===== الأزرار ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-main);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-decoration: none;
+  min-height: 50px;
+  position: relative;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+  color: var(--dark-bg);
+  box-shadow: 0 4px 20px rgba(0,255,136,0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(0,255,136,0.5);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 2px solid var(--neon-blue);
+  color: var(--neon-blue);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(0,207,255,0.1);
+  box-shadow: var(--glow-blue);
+}
+
+.btn-amber {
+  background: linear-gradient(135deg, var(--amber), #ff8c00);
+  color: var(--dark-bg);
+  box-shadow: 0 4px 20px rgba(255,183,0,0.3);
+}
+
+.btn-amber:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(255,183,0,0.5);
+}
+
+.btn-danger {
+  background: transparent;
+  border: 2px solid var(--danger);
+  color: var(--danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(255,68,102,0.1);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== بطاقة المرحلة ===== */
+.stage-card {
+  background: rgba(13, 31, 53, 0.92);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+  padding: 28px;
+  width: 100%;
+  max-width: 700px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.stage-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(0,255,136,0.1);
+  border: 1px solid rgba(0,255,136,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stage-num {
+  font-size: 0.8rem;
+  color: var(--neon-green);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.stage-title-text {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--white);
+}
+
+/* ===== خيارات الإجابة ===== */
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.option-btn {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 14px 12px;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  min-height: 52px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.option-btn:hover:not(:disabled) {
+  border-color: var(--neon-blue);
+  background: rgba(0,207,255,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,207,255,0.2);
+}
+
+.option-btn:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: 3px;
+}
+
+.option-btn.correct {
+  border-color: var(--neon-green);
+  background: rgba(0,255,136,0.15);
+  color: var(--neon-green);
+  box-shadow: var(--glow-green);
+}
+
+.option-btn.correct::after {
+  content: ' ✓';
+  font-weight: 900;
+}
+
+.option-btn.wrong {
+  border-color: var(--danger);
+  background: rgba(255,68,102,0.15);
+  color: var(--danger);
+}
+
+.option-btn.wrong::after {
+  content: ' ✗';
+  font-weight: 900;
+}
+
+.option-btn:disabled { cursor: not-allowed; }
+
+/* ===== مؤشر القراءة النشطة (للمرحلة الثالثة) ===== */
+.reading-hint {
+  background: rgba(255,183,0,0.08);
+  border-right: 3px solid var(--amber);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: var(--amber);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== التغذية الراجعة ===== */
+.feedback-box {
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin: 16px 0;
+  display: none;
+  animation: fadeIn 0.3s ease;
+  line-height: 1.7;
+  font-size: 0.97rem;
+}
+
+.feedback-box.show { display: block; }
+
+.feedback-box.success {
+  background: rgba(0,255,136,0.1);
+  border: 1px solid rgba(0,255,136,0.35);
+  color: var(--neon-green);
+}
+
+.feedback-box.error {
+  background: rgba(255,68,102,0.1);
+  border: 1px solid rgba(255,68,102,0.35);
+  color: #ff7799;
+}
+
+.feedback-box.info {
+  background: rgba(0,207,255,0.1);
+  border: 1px solid rgba(0,207,255,0.35);
+  color: var(--neon-blue);
+}
+
+/* شرح إضافي في التغذية الراجعة */
+.feedback-explain {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  color: var(--white-dim);
+  font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== بطاقة العنصر ===== */
+.element-card {
+  background: linear-gradient(135deg, #0d2a4a, #0a1f35);
+  border: 2px solid var(--neon-blue);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  max-width: 200px;
+  margin: 0 auto 24px;
+  box-shadow: var(--glow-blue);
+  position: relative;
+  overflow: hidden;
+}
+
+.element-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(0,207,255,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.element-number {
+  font-size: 0.9rem;
+  color: var(--neon-blue);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.element-symbol {
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0,207,255,0.5);
+}
+
+.element-name-ar {
+  font-size: 1rem;
+  color: var(--white-dim);
+  margin-top: 4px;
+}
+
+.element-mass {
+  font-size: 0.85rem;
+  color: var(--neon-green);
+  margin-top: 4px;
+}
+
+/* ===== تسمية تعليمية للعنصر ===== */
+.element-legend {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--white-dim);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ===== نموذج الذرة - سحب وإفلات ===== */
+.atom-model-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.drag-words {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.drag-word {
+  background: rgba(255,183,0,0.15);
+  border: 2px solid rgba(255,183,0,0.4);
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--amber);
+  cursor: grab;
+  transition: all 0.2s;
+  user-select: none;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.drag-word:hover { transform: scale(1.05); box-shadow: var(--glow-amber); }
+.drag-word.dragging { opacity: 0.4; cursor: grabbing; }
+.drag-word.placed { opacity: 0.3; cursor: default; pointer-events: none; }
+
+/* زر النقر للوضع البديل */
+.drag-word.click-mode {
+  cursor: pointer;
+  border-style: solid;
+}
+
+.drag-word.selected-for-place {
+  background: rgba(0,255,136,0.15);
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  box-shadow: var(--glow-green);
+}
+
+.drop-zones {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.drop-zone {
+  background: rgba(0,207,255,0.05);
+  border: 2px dashed rgba(0,207,255,0.3);
+  border-radius: 12px;
+  padding: 14px 20px;
+  min-width: 160px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: pointer;
+  min-height: 80px;
+}
+
+.drop-zone:hover, .drop-zone:focus-within {
+  border-color: rgba(0,207,255,0.6);
+  background: rgba(0,207,255,0.08);
+}
+
+.drop-zone.drag-over {
+  background: rgba(0,207,255,0.15);
+  border-color: var(--neon-blue);
+  box-shadow: var(--glow-blue);
+}
+
+.drop-zone-label {
+  font-size: 0.82rem;
+  color: var(--white-dim);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.drop-zone-area {
+  min-height: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+}
+
+.placed-word {
+  background: rgba(0,255,136,0.15);
+  border: 1px solid rgba(0,255,136,0.4);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.9rem;
+  color: var(--neon-green);
+  font-weight: 600;
+}
+
+.placed-word.wrong-place {
+  background: rgba(255,68,102,0.15);
+  border-color: rgba(255,68,102,0.4);
+  color: var(--danger);
+}
+
+/* تلميح طريقة الاستخدام */
+.interaction-hint {
+  font-size: 0.8rem;
+  color: var(--white-dim);
+  text-align: center;
+  opacity: 0.75;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ===== معادلة كيميائية ===== */
+.equation-display {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  font-weight: 700;
+  color: var(--white);
+  margin: 16px 0;
+  letter-spacing: 2px;
+  direction: ltr;
+}
+
+.equation-display sub {
+  font-size: 0.65em;
+}
+
+.coeff-select {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.coeff-btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(255,255,255,0.07);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  font-family: var(--font-main);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coeff-btn:hover:not(:disabled) {
+  border-color: var(--amber);
+  background: rgba(255,183,0,0.15);
+  color: var(--amber);
+  box-shadow: var(--glow-amber);
+  transform: scale(1.05);
+}
+
+.coeff-btn.selected {
+  border-color: var(--amber);
+  background: rgba(255,183,0,0.2);
+  color: var(--amber);
+  box-shadow: var(--glow-amber);
+}
+
+/* ===== الشارات ===== */
+.badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 90px;
+  transition: all 0.3s;
+}
+
+.badge.earned {
+  background: rgba(255,183,0,0.15);
+  border: 1px solid rgba(255,183,0,0.4);
+}
+
+.badge.locked {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.badge-icon { font-size: 2rem; }
+.badge-name { font-size: 0.72rem; font-weight: 700; color: var(--amber); }
+.badge.locked .badge-name { color: var(--white-dim); }
+
+/* ===== شاشة الإتمام ===== */
+#screen-end {
+  background: radial-gradient(ellipse at top, #0a2a1a 0%, var(--dark-bg) 60%);
+}
+
+.end-card {
+  background: rgba(13,31,53,0.95);
+  border: 1px solid rgba(0,255,136,0.3);
+  border-radius: 24px;
+  padding: 32px;
+  max-width: 680px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(0,255,136,0.15);
+}
+
+.end-title {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 900;
+  color: var(--neon-green);
+  text-shadow: var(--glow-green);
+  margin-bottom: 8px;
+}
+
+.end-score {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: 900;
+  color: var(--amber);
+  text-shadow: var(--glow-amber);
+  line-height: 1;
+  margin: 12px 0;
+}
+
+.end-message {
+  color: var(--white-dim);
+  font-size: 1.05rem;
+  margin: 12px 0 24px;
+  line-height: 1.6;
+}
+
+.badges-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+/* ===== ملخص تعليمي في النهاية ===== */
+.learning-summary {
+  background: rgba(0,207,255,0.05);
+  border: 1px solid rgba(0,207,255,0.2);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 16px 0;
+  text-align: right;
+}
+
+.learning-summary h3 {
+  color: var(--neon-blue);
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.learning-summary ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.learning-summary li {
+  color: var(--white-dim);
+  font-size: 0.88rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.learning-summary li::before {
+  content: '⚗️';
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
+/* ===== الشهادة ===== */
+#certificate-canvas { display: none; }
+
+.certificate-preview {
+  border: 2px solid var(--neon-green);
+  border-radius: 12px;
+  padding: 20px;
+  background: rgba(0,255,136,0.05);
+  margin: 16px 0;
+  text-align: center;
+}
+
+.cert-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--neon-green);
+  margin-bottom: 6px;
+}
+
+.cert-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.cert-body {
+  font-size: 0.9rem;
+  color: var(--white-dim);
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+/* ===== الأزرار السفلية ===== */
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* ===== تأثيرات وميض ===== */
+.flash-correct { animation: flashGreen 0.6s ease; }
+.flash-wrong { animation: flashRed 0.6s ease; }
+
+@keyframes flashGreen {
+  0%, 100% { box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(0,255,136,0.4), 0 0 60px rgba(0,255,136,0.3); }
+}
+
+@keyframes flashRed {
+  0%, 100% { box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(255,68,102,0.4), 0 0 60px rgba(255,68,102,0.2); }
+}
+
+/* ===== فقاعات ===== */
+.bubble {
+  position: fixed;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,136,0.6), transparent);
+  pointer-events: none;
+  animation: bubble-rise 1.5s ease-out forwards;
+  z-index: 9999;
+}
+
+@keyframes bubble-rise {
+  0% { transform: translateY(0) scale(0); opacity: 0.8; }
+  100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+}
+
+/* ===== نجوم ===== */
+.star-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 1.5rem;
+  animation: star-float 1.2s ease-out forwards;
+}
+
+@keyframes star-float {
+  0% { transform: translate(0,0) scale(0); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
+}
+
+/* ===== نافذة شارة منبثقة ===== */
+.badge-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: rgba(13,31,53,0.98);
+  border: 2px solid var(--amber);
+  border-radius: 20px;
+  padding: 32px 40px;
+  text-align: center;
+  z-index: 1000;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 60px rgba(255,183,0,0.3);
+  max-width: 320px;
+  width: 90%;
+}
+
+.badge-popup.show { transform: translate(-50%, -50%) scale(1); }
+
+.badge-popup-icon { font-size: 4rem; margin-bottom: 10px; }
+.badge-popup-title { color: var(--amber); font-size: 1.4rem; font-weight: 900; margin-bottom: 6px; }
+.badge-popup-name { color: var(--white); font-size: 1rem; }
+
+/* ===== خلفية النافذة المنبثقة ===== */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+
+.overlay.show { display: block; }
+
+/* ===== الروابط الكيميائية ===== */
+.bond-scenario {
+  background: rgba(0,0,0,0.3);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin: 16px 0;
+  line-height: 1.8;
+  font-size: 0.97rem;
+  color: var(--white-dim);
+  border-right: 3px solid var(--neon-blue);
+}
+
+.bond-svg-container {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+/* ===== السيناريو النهائي ===== */
+.scenario-box {
+  background: linear-gradient(135deg, rgba(0,207,255,0.05), rgba(0,255,136,0.05));
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  line-height: 1.8;
+}
+
+.scenario-highlight { color: var(--neon-blue); font-weight: 700; }
+
+/* ===== تجاوب الجوال ===== */
+@media (max-width: 600px) {
+  .stage-card { padding: 18px 14px; }
+  .options-grid { grid-template-columns: 1fr 1fr; }
+  .end-card { padding: 20px 16px; }
+  .drop-zones { flex-direction: column; align-items: center; }
+  .drop-zone { width: 100%; max-width: 300px; }
+  .a11y-bar { justify-content: center; }
+  .features-row { gap: 8px; }
+}
+
+/* ===== شريط تقدم المرحلة (micro-progress) ===== */
+.stage-progress-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.stage-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.3s;
+}
+
+.stage-dot.active { background: var(--neon-blue); border-color: var(--neon-blue); box-shadow: 0 0 6px var(--neon-blue); }
+.stage-dot.done { background: var(--neon-green); border-color: var(--neon-green); }
+</style>
+</head>
+<body>
+
+<!-- منطقة إعلانات قارئات الشاشة (مخفية بصرياً) -->
+<div aria-live="polite" aria-atomic="true" id="sr-announce" 
+     style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;"></div>
+
+<!-- ===== شريط إمكانية الوصول ===== -->
+<div class="a11y-bar" role="toolbar" aria-label="أدوات إمكانية الوصول">
+  <span class="a11y-label">♿ إمكانية الوصول:</span>
+  <button class="a11y-btn" id="btn-a11y-font" onclick="toggleAccessibleMode()" aria-pressed="false" title="تكبير الخط وتحسين التباين">
+    <span aria-hidden="true">🔤</span> خط أكبر
+  </button>
+  <button class="a11y-btn" id="btn-a11y-motion" onclick="toggleReduceMotion()" aria-pressed="false" title="إيقاف الحركات والمؤثرات">
+    <span aria-hidden="true">🎞️</span> تقليل الحركة
+  </button>
+  <button class="a11y-btn" id="btn-a11y-click" onclick="toggleClickMode()" aria-pressed="false" title="استخدام النقر بدل السحب">
+    <span aria-hidden="true">👆</span> وضع النقر
+  </button>
+</div>
+
+<!-- ===== الجسيمات في الخلفية ===== -->
+<div class="bg-particles" id="bg-particles" aria-hidden="true"></div>
+
+<!-- ===== نافذة الشارة المنبثقة ===== -->
+<div class="overlay" id="badge-overlay" aria-hidden="true"></div>
+<div class="badge-popup" id="badge-popup" role="dialog" aria-modal="true" aria-labelledby="badge-popup-title" aria-hidden="true">
+  <div class="badge-popup-icon" id="badge-popup-icon" aria-hidden="true">🏆</div>
+  <div class="badge-popup-title" id="badge-popup-title">حصلت على شارة جديدة!</div>
+  <div class="badge-popup-name" id="badge-popup-name"></div>
+</div>
+
+<!-- ===== رأس اللعبة ===== -->
+<header id="game-header" role="banner">
+  <div class="header-inner">
+    <div class="game-logo" aria-label="مختبر العناصر">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true" focusable="false">
+        <circle cx="14" cy="14" r="4" fill="#00ff88"/>
+        <ellipse cx="14" cy="14" rx="12" ry="5" fill="none" stroke="#00cfff" stroke-width="1.5" transform="rotate(0 14 14)"/>
+        <ellipse cx="14" cy="14" rx="12" ry="5" fill="none" stroke="#00cfff" stroke-width="1.5" transform="rotate(60 14 14)"/>
+        <ellipse cx="14" cy="14" rx="12" ry="5" fill="none" stroke="#00cfff" stroke-width="1.5" transform="rotate(120 14 14)"/>
+      </svg>
+      مختبر العناصر
+    </div>
+    <div class="score-display" role="status" aria-label="النقاط الحالية">
+      <span aria-hidden="true">⭐</span>
+      <span id="header-score">0</span>
+      <span>نقطة</span>
+    </div>
+    <div class="stage-indicator" id="stage-indicator" aria-live="polite">المرحلة 1 من 5</div>
+  </div>
+  <!-- نقاط تقدم المراحل -->
+  <div class="stage-progress-dots" aria-hidden="true" id="stage-dots">
+    <div class="stage-dot" data-stage="1"></div>
+    <div class="stage-dot" data-stage="2"></div>
+    <div class="stage-dot" data-stage="3"></div>
+    <div class="stage-dot" data-stage="4"></div>
+    <div class="stage-dot" data-stage="5"></div>
+  </div>
+  <div class="progress-bar-wrapper" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="تقدم اللعبة">
+    <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+  </div>
+</header>
+
+<!-- ===== الحاوية الرئيسية ===== -->
+<main id="app">
+
+<!-- ===== شاشة البداية ===== -->
+<section class="screen active" id="screen-start" aria-label="شاشة البداية">
+  <svg class="start-atom-svg" width="120" height="120" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id="nucGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#00ff88"/>
+        <stop offset="100%" stop-color="#00cfff"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="60" cy="60" rx="50" ry="18" fill="none" stroke="#00cfff" stroke-width="1.5" stroke-opacity="0.6"/>
+    <ellipse cx="60" cy="60" rx="50" ry="18" fill="none" stroke="#00cfff" stroke-width="1.5" stroke-opacity="0.6" transform="rotate(60 60 60)"/>
+    <ellipse cx="60" cy="60" rx="50" ry="18" fill="none" stroke="#00cfff" stroke-width="1.5" stroke-opacity="0.6" transform="rotate(120 60 60)"/>
+    <circle cx="60" cy="60" r="12" fill="url(#nucGrad)"/>
+    <circle cx="110" cy="60" r="4" fill="#ffb700"/>
+    <circle cx="35" cy="25" r="4" fill="#ffb700"/>
+    <circle cx="35" cy="95" r="4" fill="#ffb700"/>
+  </svg>
+
+  <h1 class="start-title">
+    <span class="lab">مختبر العناصر</span><br>
+    <span class="mission">مهمة إنقاذ التفاعل الكيميائي</span>
+  </h1>
+  <p class="start-subtitle">خمس مراحل تعليمية مثيرة في عالم الكيمياء ✨</p>
+
+  <!-- مميزات اللعبة -->
+  <div class="features-row" aria-label="مميزات اللعبة">
+    <div class="feature-chip">🧪 5 مراحل تفاعلية</div>
+    <div class="feature-chip">🏅 شارات وإنجازات</div>
+    <div class="feature-chip">📜 شهادة إتمام</div>
+    <div class="feature-chip">♾️ محاولات متعددة</div>
+  </div>
+
+  <div class="input-group">
+    <label for="student-name">ما اسمك؟</label>
+    <input 
+      type="text" 
+      id="student-name" 
+      class="name-input" 
+      placeholder="اكتب اسمك هنا..." 
+      maxlength="30"
+      autocomplete="given-name"
+      aria-required="true"
+      aria-describedby="name-error"
+      onkeydown="if(event.key==='Enter') startGame()"
+    >
+    <div id="name-error" class="input-error" role="alert">⚠️ الرجاء كتابة اسمك للمتابعة.</div>
+  </div>
+
+  <button class="btn btn-primary" onclick="startGame()" style="min-width:220px; font-size:1.15rem;" aria-label="ابدأ مهمة مختبر العناصر">
+    ابدأ المهمة 🚀
+  </button>
+
+  <div style="margin-top:32px; opacity:0.4;" aria-hidden="true">
+    <svg width="80" height="120" viewBox="0 0 80 120" focusable="false">
+      <rect x="30" y="10" width="20" height="80" rx="2" fill="none" stroke="#00ff88" stroke-width="2"/>
+      <path d="M30 90 Q40 120 50 90" fill="#00ff8830" stroke="#00ff88" stroke-width="2"/>
+      <rect x="25" y="5" width="30" height="10" rx="3" fill="none" stroke="#00cfff" stroke-width="2"/>
+      <circle cx="40" cy="75" r="3" fill="#00cfff" opacity="0.6"/>
+      <circle cx="35" cy="62" r="2" fill="#00ff88" opacity="0.5"/>
+      <circle cx="45" cy="55" r="2.5" fill="#ffb700" opacity="0.5"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ===== المرحلة الأولى: بطاقة العنصر ===== -->
+<section class="screen" id="screen-stage1" aria-label="المرحلة الأولى: بطاقة العنصر">
+  <div class="stage-card" id="card-stage1">
+    <div class="stage-header">
+      <div class="stage-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 28 28" focusable="false">
+          <rect x="4" y="4" width="20" height="20" rx="3" fill="none" stroke="#00cfff" stroke-width="2"/>
+          <text x="14" y="19" text-anchor="middle" fill="#00cfff" font-size="12" font-weight="bold">Na</text>
+        </svg>
+      </div>
+      <div>
+        <div class="stage-num">المرحلة الأولى</div>
+        <div class="stage-title-text">بطاقة العنصر</div>
+      </div>
+    </div>
+
+    <p style="color:var(--white-dim); margin-bottom:8px; font-size:0.95rem;">
+      ادرس بطاقة العنصر الكيميائي التالية ثم أجب على السؤال:
+    </p>
+
+    <!-- تسمية أجزاء البطاقة -->
+    <div class="element-legend" aria-hidden="true">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-blue)"></div>العدد الذري (فوق)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--neon-green)"></div>الكتلة الذرية (أسفل)</div>
+    </div>
+
+    <!-- بطاقة العنصر -->
+    <div class="element-card" role="img" aria-label="بطاقة عنصر الصوديوم: العدد الذري 11، الرمز Na، الكتلة الذرية 22.99">
+      <div class="element-number" id="el-number">11</div>
+      <div class="element-symbol" id="el-symbol">Na</div>
+      <div class="element-name-ar" id="el-name">الصوديوم</div>
+      <div class="element-mass" id="el-mass">22.99</div>
+    </div>
+
+    <div id="stage1-question" style="font-size:1.1rem; font-weight:700; color:var(--white); margin-bottom:16px; text-align:center;">
+      ما الفترة (الدورة) التي ينتمي إليها الصوديوم في الجدول الدوري؟
+    </div>
+
+    <div class="reading-hint" role="note">
+      <span aria-hidden="true">💡</span>
+      تلميح: الدورة = عدد مستويات الطاقة في الذرة.
+    </div>
+
+    <div class="options-grid" id="stage1-options" role="group" aria-label="خيارات الإجابة للمرحلة الأولى">
+      <button class="option-btn" onclick="checkStage1(this, false)" aria-label="الدورة الأولى">الدورة الأولى</button>
+      <button class="option-btn" onclick="checkStage1(this, false)" aria-label="الدورة الثانية">الدورة الثانية</button>
+      <button class="option-btn" onclick="checkStage1(this, true)"  aria-label="الدورة الثالثة">الدورة الثالثة</button>
+      <button class="option-btn" onclick="checkStage1(this, false)" aria-label="الدورة الرابعة">الدورة الرابعة</button>
+    </div>
+
+    <div class="feedback-box" id="stage1-feedback" role="alert" aria-live="assertive"></div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-danger" id="retry-stage1" onclick="retryStage1()" style="display:none;" aria-label="حاول مرة أخرى في المرحلة الأولى">↺ حاول مرة أخرى</button>
+      <button class="btn btn-primary" id="next-stage1" onclick="goToStage(2)" style="display:none;" aria-label="الانتقال إلى المرحلة الثانية">التالي ←</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== المرحلة الثانية: تركيب الذرة ===== -->
+<section class="screen" id="screen-stage2" aria-label="المرحلة الثانية: تركيب الذرة">
+  <div class="stage-card" id="card-stage2">
+    <div class="stage-header">
+      <div class="stage-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 28 28" focusable="false">
+          <circle cx="14" cy="14" r="5" fill="#00ff88"/>
+          <ellipse cx="14" cy="14" rx="12" ry="5" fill="none" stroke="#00cfff" stroke-width="1.5"/>
+          <ellipse cx="14" cy="14" rx="12" ry="5" fill="none" stroke="#00cfff" stroke-width="1.5" transform="rotate(60 14 14)"/>
+        </svg>
+      </div>
+      <div>
+        <div class="stage-num">المرحلة الثانية</div>
+        <div class="stage-title-text">تركيب الذرة</div>
+      </div>
+    </div>
+
+    <p style="color:var(--white-dim); margin-bottom:8px; font-size:0.95rem;">
+      ضع كل مكوّن في مكانه الصحيح من نموذج الذرة:
+    </p>
+
+    <div class="interaction-hint" id="interaction-hint-text" aria-live="polite">
+      <span aria-hidden="true">🖱️</span>
+      <span id="hint-text-content">اسحب كل بطاقة وأفلتها في المنطقة المناسبة</span>
+    </div>
+
+    <!-- نموذج الذرة SVG -->
+    <div style="display:flex; justify-content:center; margin-bottom:16px;" aria-hidden="true">
+      <svg width="220" height="180" viewBox="0 0 220 180" focusable="false">
+        <ellipse cx="110" cy="90" rx="90" ry="32" fill="none" stroke="#00cfff" stroke-width="1.5" stroke-opacity="0.5"/>
+        <ellipse cx="110" cy="90" rx="90" ry="32" fill="none" stroke="#00cfff" stroke-width="1.5" stroke-opacity="0.5" transform="rotate(60 110 90)"/>
+        <ellipse cx="110" cy="90" rx="90" ry="32" fill="none" stroke="#00cfff" stroke-width="1.5" stroke-opacity="0.5" transform="rotate(120 110 90)"/>
+        <circle cx="110" cy="90" r="28" fill="#0a2040" stroke="#00ff88" stroke-width="2"/>
+        <text x="110" y="85" text-anchor="middle" fill="#00cfff" font-size="9" font-family="Cairo,sans-serif">نواة</text>
+        <text x="110" y="97" text-anchor="middle" fill="#a0c0d0" font-size="8" font-family="Cairo,sans-serif">بروتون+نيوترون</text>
+        <circle cx="198" cy="88" r="6" fill="#ffb700"/>
+        <circle cx="75" cy="35" r="6" fill="#ffb700"/>
+        <circle cx="45" cy="130" r="6" fill="#ffb700"/>
+        <text x="198" y="108" text-anchor="middle" fill="#ffb700" font-size="8" font-family="Cairo,sans-serif">e⁻</text>
+        <text x="75" y="25" text-anchor="middle" fill="#ffb700" font-size="8" font-family="Cairo,sans-serif">e⁻</text>
+        <text x="45" y="150" text-anchor="middle" fill="#ffb700" font-size="8" font-family="Cairo,sans-serif">e⁻</text>
+      </svg>
+    </div>
+
+    <!-- كلمات السحب -->
+    <div class="atom-model-container">
+      <div class="drag-words" id="drag-words" role="list" aria-label="مكوّنات الذرة للتصنيف">
+        <div class="drag-word" draggable="true" data-word="بروتون" id="dw-proton" role="listitem"
+          tabindex="0" aria-label="بروتون - اسحبه إلى المنطقة المناسبة"
+          ondragstart="dragStart(event)"
+          ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)"
+          onkeydown="keyboardDrag(event, this)">
+          بروتون ⚛️
+        </div>
+        <div class="drag-word" draggable="true" data-word="نيوترون" id="dw-neutron" role="listitem"
+          tabindex="0" aria-label="نيوترون - اسحبه إلى المنطقة المناسبة"
+          ondragstart="dragStart(event)"
+          ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)"
+          onkeydown="keyboardDrag(event, this)">
+          نيوترون ⚪
+        </div>
+        <div class="drag-word" draggable="true" data-word="إلكترون" id="dw-electron" role="listitem"
+          tabindex="0" aria-label="إلكترون - اسحبه إلى المنطقة المناسبة"
+          ondragstart="dragStart(event)"
+          ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)"
+          onkeydown="keyboardDrag(event, this)">
+          إلكترون 🟡
+        </div>
+      </div>
+
+      <div class="drop-zones">
+        <div class="drop-zone" id="zone-nucleus" role="button"
+          tabindex="0" aria-label="منطقة النواة - اسقط هنا مكوّنات النواة"
+          aria-dropeffect="move"
+          ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropItem(event, 'nucleus')"
+          onclick="clickDrop('nucleus')">
+          <div class="drop-zone-label">🔵 النواة</div>
+          <div class="drop-zone-area" id="nucleus-area"></div>
+        </div>
+        <div class="drop-zone" id="zone-orbit" role="button"
+          tabindex="0" aria-label="منطقة المدار - اسقط هنا مكوّنات المدار"
+          aria-dropeffect="move"
+          ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropItem(event, 'orbit')"
+          onclick="clickDrop('orbit')">
+          <div class="drop-zone-label">🟡 المدار</div>
+          <div class="drop-zone-area" id="orbit-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback-box" id="stage2-feedback" role="alert" aria-live="assertive"></div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="goToStage(1)" aria-label="العودة إلى المرحلة الأولى">← السابق</button>
+      <button class="btn btn-primary" id="next-stage2" onclick="goToStage(3)" style="display:none;" aria-label="الانتقال إلى المرحلة الثالثة">التالي ←</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== المرحلة الثالثة: الروابط الكيميائية ===== -->
+<section class="screen" id="screen-stage3" aria-label="المرحلة الثالثة: الروابط الكيميائية">
+  <div class="stage-card" id="card-stage3">
+    <div class="stage-header">
+      <div class="stage-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 28 28" focusable="false">
+          <circle cx="8" cy="14" r="5" fill="none" stroke="#00ff88" stroke-width="2"/>
+          <circle cx="20" cy="14" r="5" fill="none" stroke="#ff4466" stroke-width="2"/>
+          <line x1="11" y1="12" x2="17" y2="12" stroke="#ffb700" stroke-width="2"/>
+          <line x1="11" y1="16" x2="17" y2="16" stroke="#ffb700" stroke-width="2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="stage-num">المرحلة الثالثة</div>
+        <div class="stage-title-text">الروابط الكيميائية</div>
+      </div>
+    </div>
+
+    <div id="stage3-q-num" style="font-size:0.85rem; color:var(--neon-blue); margin-bottom:10px; font-weight:700;" aria-live="polite">
+      السؤال 1 من 2
+    </div>
+
+    <div class="bond-scenario" id="stage3-scenario" aria-live="polite">
+      ذرة الصوديوم (Na) تتبرع بإلكترون واحد لذرة الكلور (Cl)، مما يجعل كلًا منهما يحمل شحنة كهربائية.
+    </div>
+
+    <div class="bond-svg-container" id="bond-svg-area" aria-hidden="true">
+      <svg width="280" height="80" viewBox="0 0 280 80" focusable="false">
+        <circle cx="60" cy="40" r="22" fill="#0a2040" stroke="#00cfff" stroke-width="2"/>
+        <text x="60" y="38" text-anchor="middle" fill="#00cfff" font-size="13" font-weight="bold" font-family="Cairo,sans-serif">Na</text>
+        <text x="60" y="52" text-anchor="middle" fill="#a0c0d0" font-size="9" font-family="Cairo,sans-serif">+</text>
+        <circle cx="220" cy="40" r="22" fill="#1a0a20" stroke="#ff4466" stroke-width="2"/>
+        <text x="220" y="38" text-anchor="middle" fill="#ff4466" font-size="13" font-weight="bold" font-family="Cairo,sans-serif">Cl</text>
+        <text x="220" y="52" text-anchor="middle" fill="#ff7799" font-size="9" font-family="Cairo,sans-serif">-</text>
+        <circle cx="140" cy="30" r="5" fill="#ffb700"/>
+        <line x1="85" y1="30" x2="155" y2="30" stroke="#ffb700" stroke-width="2" marker-end="url(#arr)"/>
+        <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#ffb700"/>
+        </marker></defs>
+        <text x="140" y="65" text-anchor="middle" fill="#ffb700" font-size="9" font-family="Cairo,sans-serif">e⁻ ينتقل</text>
+      </svg>
+    </div>
+
+    <div style="text-align:center; font-size:1.05rem; font-weight:700; color:var(--white); margin:12px 0;">
+      ما نوع هذه الرابطة؟
+    </div>
+
+    <div class="options-grid" id="stage3-options" style="grid-template-columns:1fr 1fr; max-width:360px; margin:0 auto 16px;" role="group" aria-label="خيار نوع الرابطة">
+      <button class="option-btn" onclick="checkStage3(this, 'ionic')" aria-label="رابطة أيونية">رابطة أيونية ⚡</button>
+      <button class="option-btn" onclick="checkStage3(this, 'covalent')" aria-label="رابطة تساهمية">رابطة تساهمية 🤝</button>
+    </div>
+
+    <div class="feedback-box" id="stage3-feedback" role="alert" aria-live="assertive"></div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="goToStage(2)" aria-label="العودة إلى المرحلة الثانية">← السابق</button>
+      <button class="btn btn-danger" id="retry-stage3" onclick="retryStage3()" style="display:none;" aria-label="حاول مرة أخرى">↺ حاول مرة أخرى</button>
+      <button class="btn btn-primary" id="next-stage3" onclick="nextStage3Q()" style="display:none;" aria-label="التالي">التالي ←</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== المرحلة الرابعة: موازنة المعادلات ===== -->
+<section class="screen" id="screen-stage4" aria-label="المرحلة الرابعة: موازنة المعادلات">
+  <div class="stage-card" id="card-stage4">
+    <div class="stage-header">
+      <div class="stage-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 28 28" focusable="false">
+          <text x="14" y="20" text-anchor="middle" fill="#ffb700" font-size="18" font-family="Cairo,sans-serif">=</text>
+        </svg>
+      </div>
+      <div>
+        <div class="stage-num">المرحلة الرابعة</div>
+        <div class="stage-title-text">موازنة المعادلات</div>
+      </div>
+    </div>
+
+    <p style="color:var(--white-dim); font-size:0.95rem; margin-bottom:12px;">
+      المعادلة التالية غير موزونة. اختر المعامل الصحيح لـ H₂:
+    </p>
+
+    <div class="reading-hint" role="note">
+      <span aria-hidden="true">💡</span>
+      قانون حفظ الكتلة: عدد ذرات كل عنصر يجب أن يتساوى على طرفَي المعادلة.
+    </div>
+
+    <div class="equation-display" role="img" aria-label="المعادلة: H2 + O2 تنتج H2O">
+      H<sub>2</sub> + O<sub>2</sub> → H<sub>2</sub>O
+    </div>
+
+    <p style="text-align:center; font-size:1rem; font-weight:700; color:var(--white); margin:12px 0;">
+      كم مرة يتكرر H<sub>2</sub> في المعادلة الموزونة؟
+    </p>
+
+    <div class="coeff-select" id="coeff-options" role="group" aria-label="اختر المعامل الصحيح">
+      <button class="coeff-btn" onclick="checkStage4(this, '1')" aria-label="المعامل 1">1</button>
+      <button class="coeff-btn" onclick="checkStage4(this, '2')" aria-label="المعامل 2">2</button>
+      <button class="coeff-btn" onclick="checkStage4(this, '3')" aria-label="المعامل 3">3</button>
+      <button class="coeff-btn" onclick="checkStage4(this, '4')" aria-label="المعامل 4">4</button>
+    </div>
+
+    <div class="feedback-box" id="stage4-feedback" role="alert" aria-live="assertive"></div>
+
+    <div id="balanced-eq" style="display:none; text-align:center; margin:12px 0;" aria-live="polite">
+      <div style="font-size:0.85rem; color:var(--white-dim); margin-bottom:8px;">المعادلة الموزونة:</div>
+      <div class="equation-display" style="border-color:var(--neon-green); box-shadow:var(--glow-green); color:var(--neon-green);"
+           role="img" aria-label="المعادلة الموزونة: 2H2 + O2 تنتج 2H2O">
+        2H<sub>2</sub> + O<sub>2</sub> → 2H<sub>2</sub>O
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="goToStage(3)" aria-label="العودة إلى المرحلة الثالثة">← السابق</button>
+      <button class="btn btn-danger" id="retry-stage4" onclick="retryStage4()" style="display:none;" aria-label="حاول مرة أخرى">↺ حاول مرة أخرى</button>
+      <button class="btn btn-primary" id="next-stage4" onclick="goToStage(5)" style="display:none;" aria-label="الانتقال إلى المرحلة الخامسة">التالي ←</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== المرحلة الخامسة: تحدي المختبر ===== -->
+<section class="screen" id="screen-stage5" aria-label="المرحلة الخامسة: تحدي المختبر">
+  <div class="stage-card" id="card-stage5">
+    <div class="stage-header">
+      <div class="stage-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 28 28" focusable="false">
+          <path d="M14 4 L24 22 L4 22 Z" fill="none" stroke="#ffb700" stroke-width="2"/>
+          <circle cx="14" cy="18" r="2" fill="#ffb700"/>
+          <line x1="14" y1="10" x2="14" y2="15" stroke="#ffb700" stroke-width="2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="stage-num">المرحلة الخامسة – التحدي النهائي</div>
+        <div class="stage-title-text">تحدي المختبر</div>
+      </div>
+    </div>
+
+    <div class="scenario-box" role="region" aria-label="سيناريو التحدي">
+      <p style="margin-bottom:10px;">🧪 في مختبرك الافتراضي، لديك مادتان:</p>
+      <p>
+        ⚡ <span class="scenario-highlight">الهيدروجين (H₂)</span> يشارك إلكتروناته مع الكلور (Cl₂)
+        لتكوين حمض الهيدروكلوريك (HCl).
+      </p>
+      <p style="margin-top:10px;">
+        المعادلة غير الموزونة:
+        <span style="direction:ltr; display:inline-block; color:var(--white); font-weight:700;" lang="en">H₂ + Cl₂ → HCl</span>
+      </p>
+    </div>
+
+    <div style="font-size:1rem; font-weight:700; color:var(--white); margin:12px 0;">
+      ما القرار الصحيح لإكمال التفاعل وإنقاذ المختبر؟
+    </div>
+
+    <div class="options-grid" id="stage5-options" style="grid-template-columns:1fr;" role="group" aria-label="خيارات الإجابة النهائية">
+      <button class="option-btn" onclick="checkStage5(this, false)" style="text-align:right; padding:14px 18px;">
+        أ) الرابطة أيونية لأن H يتبرع بإلكترون، والمعادلة الموزونة: H₂ + Cl₂ → 2HCl
+      </button>
+      <button class="option-btn" onclick="checkStage5(this, true)" style="text-align:right; padding:14px 18px;">
+        ب) الرابطة تساهمية لأن H وCl يتشاركان إلكترونات، والمعادلة الموزونة: H₂ + Cl₂ → 2HCl
+      </button>
+      <button class="option-btn" onclick="checkStage5(this, false)" style="text-align:right; padding:14px 18px;">
+        ج) الرابطة تساهمية، والمعادلة غير المتوازنة صحيحة كما هي
+      </button>
+    </div>
+
+    <div class="feedback-box" id="stage5-feedback" role="alert" aria-live="assertive"></div>
+
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" onclick="goToStage(4)" aria-label="العودة إلى المرحلة الرابعة">← السابق</button>
+      <button class="btn btn-danger" id="retry-stage5" onclick="retryStage5()" style="display:none;" aria-label="حاول مرة أخرى">↺ حاول مرة أخرى</button>
+      <button class="btn btn-amber" id="finish-btn" onclick="finishGame()" style="display:none;" aria-label="إكمال المهمة والانتقال إلى النتائج">🎉 إكمال المهمة!</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== شاشة النهاية ===== -->
+<section class="screen" id="screen-end" aria-label="شاشة النتائج والإتمام">
+  <div class="end-card">
+    <div style="font-size:3rem; margin-bottom:8px;" aria-hidden="true">🏆</div>
+    <div class="end-title">🎊 تم إنقاذ التفاعل بنجاح!</div>
+    <div style="color:var(--white-dim); font-size:1rem; margin:8px 0;">
+      أحسنت يا <span id="end-name" style="color:var(--neon-blue); font-weight:700;"></span>
+    </div>
+    <div style="font-size:1rem; color:var(--white-dim);">مجموع نقاطك:</div>
+    <div class="end-score" id="end-score" role="status" aria-label="النقاط الإجمالية">0</div>
+    <div class="end-message" id="end-message" role="status"></div>
+
+    <!-- ملخص ما تعلمته -->
+    <div class="learning-summary" aria-label="ملخص ما تعلمته">
+      <h3>📚 ما تعلمته اليوم:</h3>
+      <ul>
+        <li>الجدول الدوري يُصنّف العناصر في دورات (صفوف) وفق مستويات الطاقة.</li>
+        <li>الذرة تتكون من نواة (بروتون + نيوترون) وإلكترونات تدور حولها.</li>
+        <li>الرابطة الأيونية: انتقال إلكترون | الرابطة التساهمية: مشاركة إلكترون.</li>
+        <li>قانون حفظ الكتلة يضمن توازن عدد الذرات في المعادلات الكيميائية.</li>
+      </ul>
+    </div>
+
+    <!-- الشارات المكتسبة -->
+    <div style="font-size:1rem; font-weight:700; color:var(--neon-blue); margin-bottom:12px;">🏅 شاراتك:</div>
+    <div class="badges-grid" id="end-badges" role="list" aria-label="الشارات المكتسبة"></div>
+
+    <!-- شهادة الإتمام -->
+    <div class="certificate-preview" id="cert-preview" role="region" aria-label="شهادة إتمام المهمة">
+      <div class="cert-title">⭐ شهادة إتمام مهمة مختبر العناصر ⭐</div>
+      <div style="font-size:0.8rem; color:var(--white-dim); margin:4px 0;">تُمنح هذه الشهادة لـ</div>
+      <div class="cert-name" id="cert-name-display"></div>
+      <div class="cert-body">لإتمامه جميع مراحل لعبة مختبر العناصر الكيميائية<br>وإنقاذ التفاعل الكيميائي بنجاح 🧪</div>
+      <div style="font-size:0.8rem; color:var(--neon-green); margin-top:6px;" id="cert-date"></div>
+    </div>
+
+    <canvas id="certificate-canvas" width="800" height="450" aria-hidden="true"></canvas>
+
+    <div class="nav-buttons">
+      <button class="btn btn-amber" onclick="downloadCertificate()" aria-label="حفظ الشهادة كصورة">💾 حفظ الشهادة</button>
+      <button class="btn btn-secondary" onclick="restartGame()" aria-label="إعادة اللعب من البداية">🔄 إعادة اللعب</button>
+    </div>
+  </div>
+</section>
+
+</main><!-- نهاية main -->
+
+<script>
+'use strict';
+
+// ===== البيانات العامة =====
+let studentName = '';
+let score = 0;
+let badges = [];
+let stage1Attempt = 1;
+let stage3Current = 1;
+let stage3Q1Done = false;
+let stage3Q2Done = false;
+let draggedEl = null;
+let touchClone = null;
+let nucleusItems = [];
+let orbitItems = [];
+let stage2Done = false;
+let clickModeEnabled = false;
+let selectedDragWord = null;
+
+const badgeData = [
+  { id: 'explorer', icon: '🔭', name: 'مستكشف العناصر' },
+  { id: 'atom',     icon: '⚛️', name: 'عالم الذرة' },
+  { id: 'bonds',    icon: '🔗', name: 'خبير الروابط' },
+  { id: 'balance',  icon: '⚖️', name: 'موازن المعادلات' },
+  { id: 'leader',   icon: '🏆', name: 'قائد المختبر' },
+];
+
+// ===== إعلانات قارئات الشاشة =====
+function announce(text) {
+  const el = document.getElementById('sr-announce');
+  el.textContent = '';
+  setTimeout(() => { el.textContent = text; }, 50);
+}
+
+// ===== إمكانية الوصول =====
+function toggleAccessibleMode() {
+  document.body.classList.toggle('accessible-mode');
+  const btn = document.getElementById('btn-a11y-font');
+  const active = document.body.classList.contains('accessible-mode');
+  btn.setAttribute('aria-pressed', active);
+  btn.classList.toggle('active', active);
+  announce(active ? 'تم تفعيل وضع الخط الأكبر والتباين العالي' : 'تم إيقاف وضع إمكانية الوصول');
+}
+
+function toggleReduceMotion() {
+  const btn = document.getElementById('btn-a11y-motion');
+  const active = btn.getAttribute('aria-pressed') !== 'true';
+  btn.setAttribute('aria-pressed', active);
+  btn.classList.toggle('active', active);
+  if (active) {
+    document.body.style.setProperty('--animation-duration', '0.01ms');
+    document.getElementById('bg-particles').style.display = 'none';
+  } else {
+    document.body.style.removeProperty('--animation-duration');
+    document.getElementById('bg-particles').style.display = '';
+  }
+  announce(active ? 'تم إيقاف الحركات والمؤثرات' : 'تم تفعيل الحركات');
+}
+
+function toggleClickMode() {
+  clickModeEnabled = !clickModeEnabled;
+  const btn = document.getElementById('btn-a11y-click');
+  btn.setAttribute('aria-pressed', clickModeEnabled);
+  btn.classList.toggle('active', clickModeEnabled);
+  document.querySelectorAll('.drag-word').forEach(w => w.classList.toggle('click-mode', clickModeEnabled));
+  const hint = document.getElementById('hint-text-content');
+  if (hint) hint.textContent = clickModeEnabled
+    ? 'انقر على مكوّن ثم انقر على المنطقة المناسبة'
+    : 'اسحب كل بطاقة وأفلتها في المنطقة المناسبة';
+  announce(clickModeEnabled ? 'تم تفعيل وضع النقر بدل السحب' : 'تم إيقاف وضع النقر');
+}
+
+// ===== توليد الجسيمات =====
+(function createParticles() {
+  const container = document.getElementById('bg-particles');
+  const colors = ['#00ff88', '#00cfff', '#ffb700', '#ff4466'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 6 + 3;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      left:${Math.random()*100}%;
+      animation-duration:${8+Math.random()*12}s;
+      animation-delay:-${Math.random()*15}s;
+    `;
+    container.appendChild(p);
+  }
+})();
+
+// ===== بدء اللعبة =====
+function startGame() {
+  const nameInput = document.getElementById('student-name').value.trim();
+  const errEl = document.getElementById('name-error');
+  if (!nameInput) {
+    document.getElementById('student-name').setAttribute('aria-invalid', 'true');
+    errEl.classList.add('show');
+    document.getElementById('student-name').focus();
+    announce('الرجاء كتابة اسمك أولاً للمتابعة');
+    setTimeout(() => {
+      document.getElementById('student-name').removeAttribute('aria-invalid');
+      errEl.classList.remove('show');
+    }, 3000);
+    return;
+  }
+  studentName = nameInput;
+  document.getElementById('game-header').style.display = 'block';
+  announce(`مرحباً ${studentName}! تبدأ المهمة الآن.`);
+  goToStage(1);
+}
+
+// ===== التنقل بين المراحل =====
+function goToStage(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const screenId = n === 0 ? 'screen-start' : `screen-stage${n}`;
+  const screen = document.getElementById(screenId);
+  screen.classList.add('active');
+
+  // نقل التركيز إلى أول عنصر في الشاشة الجديدة
+  setTimeout(() => {
+    const firstFocusable = screen.querySelector('button:not([disabled]), input, [tabindex="0"]');
+    if (firstFocusable) firstFocusable.focus();
+  }, 100);
+
+  if (n >= 1 && n <= 5) {
+    updateHeader(n);
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateHeader(n) {
+  document.getElementById('header-score').textContent = score;
+  document.getElementById('stage-indicator').textContent = `المرحلة ${n} من 5`;
+  const progressPct = (n - 1) * 20;
+  const pb = document.getElementById('progress-bar');
+  pb.style.width = `${progressPct}%`;
+  pb.parentElement.setAttribute('aria-valuenow', progressPct);
+
+  // تحديث نقاط التقدم
+  document.querySelectorAll('.stage-dot').forEach(dot => {
+    const s = parseInt(dot.dataset.stage);
+    dot.classList.remove('active', 'done');
+    if (s < n) dot.classList.add('done');
+    else if (s === n) dot.classList.add('active');
+  });
+}
+
+function updateScore() {
+  document.getElementById('header-score').textContent = score;
+}
+
+// ===== المرحلة الأولى =====
+function checkStage1(btn, isCorrect) {
+  const options = document.querySelectorAll('#stage1-options .option-btn');
+  options.forEach(o => o.disabled = true);
+  const feedback = document.getElementById('stage1-feedback');
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    const pts = stage1Attempt === 1 ? 10 : 6;
+    score += pts;
+    updateScore();
+    feedback.className = 'feedback-box success show';
+    feedback.innerHTML = `✅ <strong>ممتاز!</strong> الصوديوم (عدده الذري 11) يقع في الدورة الثالثة من الجدول الدوري.
+      <div class="feedback-explain">💡 الدورة = عدد مستويات الطاقة. الصوديوم لديه 3 مستويات (K, L, M)، لذا هو في الدورة الثالثة.</div>
+      حصلت على <strong>${pts} نقاط</strong>!`;
+    announce(`إجابة صحيحة! حصلت على ${pts} نقاط.`);
+    document.getElementById('next-stage1').style.display = 'inline-flex';
+    document.getElementById('retry-stage1').style.display = 'none';
+    flashEffect('card-stage1', true);
+    showBubbles(); showStars();
+    earnBadge('explorer');
+  } else {
+    btn.classList.add('wrong');
+    if (stage1Attempt === 1) {
+      feedback.className = 'feedback-box error show';
+      feedback.innerHTML = `❌ <strong>ليس صحيحاً.</strong> تلميح: عدّ مستويات الطاقة في الصوديوم (العدد الذري 11 = 2 + 8 + 1). كم مستوىً هناك؟
+        <div class="feedback-explain">توزيع إلكترونات Na: المستوى الأول 2، المستوى الثاني 8، المستوى الثالث 1.</div>`;
+      announce('إجابة خاطئة. راجع التلميح وحاول مرة أخرى.');
+      document.getElementById('retry-stage1').style.display = 'inline-flex';
+      stage1Attempt = 2;
+      setTimeout(() => document.getElementById('retry-stage1').focus(), 100);
+    } else {
+      feedback.className = 'feedback-box error show';
+      feedback.innerHTML = `❌ الإجابة الصحيحة هي <strong>الدورة الثالثة</strong>. الصوديوم يملك 3 مستويات طاقة (K, L, M)، مما يعني أنه في الدورة الثالثة.`;
+      announce('الإجابة الصحيحة هي الدورة الثالثة. يمكنك المتابعة.');
+      document.getElementById('next-stage1').style.display = 'inline-flex';
+      document.getElementById('retry-stage1').style.display = 'none';
+    }
+    flashEffect('card-stage1', false);
+  }
+}
+
+function retryStage1() {
+  document.querySelectorAll('#stage1-options .option-btn').forEach(o => {
+    o.disabled = false;
+    o.classList.remove('correct', 'wrong');
+  });
+  document.getElementById('stage1-feedback').classList.remove('show');
+  document.getElementById('retry-stage1').style.display = 'none';
+  announce('جرّب مجدداً. اختر الدورة المناسبة للصوديوم.');
+}
+
+// ===== المرحلة الثانية - السحب والإفلات =====
+const correctPlacements = { 'بروتون': 'nucleus', 'نيوترون': 'nucleus', 'إلكترون': 'orbit' };
+
+function dragStart(e) {
+  draggedEl = e.target;
+  e.target.classList.add('dragging');
+  e.dataTransfer.setData('text/plain', e.target.dataset.word);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function dropItem(e, zone) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const word = e.dataTransfer.getData('text/plain');
+  if (word) placeWord(word, zone);
+}
+
+// السحب باللمس
+function touchStart(e) {
+  draggedEl = e.currentTarget;
+  draggedEl.classList.add('dragging');
+  const touch = e.touches[0];
+  touchClone = draggedEl.cloneNode(true);
+  touchClone.style.cssText = `position:fixed;z-index:9999;opacity:0.85;pointer-events:none;left:${touch.clientX-40}px;top:${touch.clientY-20}px;transform:scale(1.05);transition:none;`;
+  document.body.appendChild(touchClone);
+}
+
+function touchMove(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  if (touchClone) {
+    touchClone.style.left = `${touch.clientX-40}px`;
+    touchClone.style.top = `${touch.clientY-20}px`;
+  }
+}
+
+function touchEnd(e) {
+  if (touchClone) { document.body.removeChild(touchClone); touchClone = null; }
+  if (!draggedEl) return;
+  draggedEl.classList.remove('dragging');
+  const touch = e.changedTouches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const zone = el ? el.closest('.drop-zone') : null;
+  if (zone) placeWord(draggedEl.dataset.word, zone.id === 'zone-nucleus' ? 'nucleus' : 'orbit');
+  draggedEl = null;
+}
+
+// وضع النقر للوصول السهل
+function clickDrop(zone) {
+  if (!clickModeEnabled || !selectedDragWord) return;
+  placeWord(selectedDragWord, zone);
+  document.querySelectorAll('.drag-word').forEach(w => w.classList.remove('selected-for-place'));
+  selectedDragWord = null;
+}
+
+// التنقل بالكيبورد
+function keyboardDrag(e, el) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    if (!el.classList.contains('placed')) {
+      document.querySelectorAll('.drag-word').forEach(w => w.classList.remove('selected-for-place'));
+      el.classList.add('selected-for-place');
+      selectedDragWord = el.dataset.word;
+      announce(`تم اختيار ${el.dataset.word}. الآن اضغط على منطقة النواة أو المدار للوضع.`);
+      // تمكين الكيبورد للمناطق
+      document.getElementById('zone-nucleus').focus();
+    }
+  }
+}
+
+// إضافة دعم الكيبورد لمناطق الإفلات
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && selectedDragWord) {
+        e.preventDefault();
+        clickDrop(zone.id === 'zone-nucleus' ? 'nucleus' : 'orbit');
+      }
+    });
+  });
+});
+
+function placeWord(word, zone) {
+  if (document.querySelector(`[data-word="${word}"]`).classList.contains('placed')) return;
+  const isCorrect = correctPlacements[word] === zone;
+  const areaId = zone === 'nucleus' ? 'nucleus-area' : 'orbit-area';
+  const area = document.getElementById(areaId);
+
+  const tag = document.createElement('div');
+  tag.className = `placed-word${isCorrect ? '' : ' wrong-place'}`;
+  tag.textContent = word;
+  tag.setAttribute('aria-label', `${word} - ${isCorrect ? 'في المكان الصحيح' : 'في المكان الخاطئ'}`);
+  area.appendChild(tag);
+
+  const sourceEl = document.querySelector(`[data-word="${word}"]`);
+  if (sourceEl) sourceEl.classList.add('placed');
+
+  if (zone === 'nucleus') nucleusItems.push({ word, correct: isCorrect });
+  else orbitItems.push({ word, correct: isCorrect });
+
+  checkStage2Complete();
+}
+
+function checkStage2Complete() {
+  const allPlaced = document.querySelectorAll('.drag-word.placed').length === 3;
+  if (!allPlaced || stage2Done) return;
+
+  const allCorrect = nucleusItems.every(i => i.correct) && orbitItems.every(i => i.correct);
+  const feedback = document.getElementById('stage2-feedback');
+
+  if (allCorrect) {
+    stage2Done = true;
+    score += 15;
+    updateScore();
+    feedback.className = 'feedback-box success show';
+    feedback.innerHTML = `✅ <strong>رائع!</strong> البروتونات والنيوترونات توجد داخل النواة، بينما الإلكترونات تتحرك في مدارات حولها.
+      <div class="feedback-explain">💡 البروتون: شحنة موجبة | النيوترون: بلا شحنة | الإلكترون: شحنة سالبة.</div>
+      حصلت على <strong>15 نقطة</strong>!`;
+    announce('ممتاز! جميع المكوّنات في أماكنها الصحيحة. حصلت على 15 نقطة.');
+    document.getElementById('next-stage2').style.display = 'inline-flex';
+    setTimeout(() => document.getElementById('next-stage2').focus(), 100);
+    flashEffect('card-stage2', true);
+    showBubbles(); showStars();
+    earnBadge('atom');
+  } else {
+    feedback.className = 'feedback-box error show';
+    feedback.innerHTML = `❌ بعض التصنيفات غير صحيحة! البروتون والنيوترون في النواة 🔵، والإلكترون في المدار 🟡.
+      <div class="feedback-explain">تذكر: الإلكترون هو الجسيم الأخف ويوجد خارج النواة في مستويات الطاقة.</div>
+      سيتم إعادة الضبط خلال لحظات...`;
+    announce('إجابة خاطئة. سيتم إعادة الضبط قريباً لتحاول مجدداً.');
+    setTimeout(resetStage2, 2800);
+  }
+}
+
+function resetStage2() {
+  nucleusItems = []; orbitItems = [];
+  document.getElementById('nucleus-area').innerHTML = '';
+  document.getElementById('orbit-area').innerHTML = '';
+  document.querySelectorAll('.drag-word').forEach(w => w.classList.remove('placed', 'dragging', 'selected-for-place'));
+  document.getElementById('stage2-feedback').classList.remove('show');
+  selectedDragWord = null;
+}
+
+// ===== المرحلة الثالثة =====
+const stage3Questions = [
+  {
+    scenario: 'ذرة الصوديوم (Na) تتبرع بإلكترون واحد لذرة الكلور (Cl)، مما يجعل كلًا منهما يحمل شحنة كهربائية.',
+    correct: 'ionic',
+    svgType: 'transfer',
+    feedbackCorrect: `✅ <strong>صحيح!</strong> الرابطة الأيونية تتكون عند انتقال إلكترون من معدن (كالصوديوم) إلى لا معدن (كالكلور).
+      <div class="feedback-explain">💡 مثال: ملح الطعام (NaCl) يتكون بهذه الطريقة. لهذا يذوب في الماء ويوصل الكهرباء!</div>`,
+    feedbackWrong: `❌ هذه <strong>رابطة أيونية</strong>، لأن الصوديوم يتبرع بإلكترون. الرابطة التساهمية تتطلب مشاركة الإلكترونات لا انتقالها.`
+  },
+  {
+    scenario: 'في جزيء الماء (H₂O)، تتشارك ذرتا الهيدروجين مع ذرة الأكسجين في أزواج من الإلكترونات.',
+    correct: 'covalent',
+    svgType: 'share',
+    feedbackCorrect: `✅ <strong>ممتاز!</strong> الرابطة التساهمية تحدث عند مشاركة الإلكترونات بين ذرتين، كما في جزيء الماء.
+      <div class="feedback-explain">💡 جزيء الماء (H₂O) يتكون برابطتين تساهميتين. معظم المركبات العضوية تحتوي روابط تساهمية!</div>`,
+    feedbackWrong: `❌ هذه <strong>رابطة تساهمية</strong>. عندما تتشارك الذرات إلكتروناتها تتكون رابطة تساهمية. الأيونية هي التي تنتقل فيها الإلكترونات.`
+  }
+];
+
+let stage3Attempt = 1;
+
+function renderStage3(qIdx) {
+  const q = stage3Questions[qIdx];
+  document.getElementById('stage3-q-num').textContent = `السؤال ${qIdx+1} من 2`;
+  document.getElementById('stage3-scenario').textContent = q.scenario;
+
+  const svgArea = document.getElementById('bond-svg-area');
+  if (q.svgType === 'share') {
+    svgArea.innerHTML = `<svg width="280" height="80" viewBox="0 0 280 80" focusable="false" aria-hidden="true">
+      <circle cx="80" cy="40" r="22" fill="#0a2040" stroke="#00cfff" stroke-width="2"/>
+      <text x="80" y="38" text-anchor="middle" fill="#00cfff" font-size="12" font-weight="bold" font-family="Cairo,sans-serif">H</text>
+      <circle cx="200" cy="40" r="28" fill="#1a0a20" stroke="#00ff88" stroke-width="2"/>
+      <text x="200" y="38" text-anchor="middle" fill="#00ff88" font-size="12" font-weight="bold" font-family="Cairo,sans-serif">O</text>
+      <circle cx="125" cy="35" r="5" fill="#ffb700" opacity="0.9"/>
+      <circle cx="140" cy="45" r="5" fill="#ffb700" opacity="0.9"/>
+      <text x="140" y="68" text-anchor="middle" fill="#ffb700" font-size="9" font-family="Cairo,sans-serif">إلكترونات مشتركة</text>
+    </svg>`;
+  } else {
+    svgArea.innerHTML = `<svg width="280" height="80" viewBox="0 0 280 80" focusable="false" aria-hidden="true">
+      <circle cx="60" cy="40" r="22" fill="#0a2040" stroke="#00cfff" stroke-width="2"/>
+      <text x="60" y="38" text-anchor="middle" fill="#00cfff" font-size="13" font-weight="bold" font-family="Cairo,sans-serif">Na</text>
+      <text x="60" y="52" text-anchor="middle" fill="#a0c0d0" font-size="9" font-family="Cairo,sans-serif">+</text>
+      <circle cx="220" cy="40" r="22" fill="#1a0a20" stroke="#ff4466" stroke-width="2"/>
+      <text x="220" y="38" text-anchor="middle" fill="#ff4466" font-size="13" font-weight="bold" font-family="Cairo,sans-serif">Cl</text>
+      <text x="220" y="52" text-anchor="middle" fill="#ff7799" font-size="9" font-family="Cairo,sans-serif">-</text>
+      <circle cx="140" cy="30" r="5" fill="#ffb700"/>
+      <line x1="85" y1="30" x2="155" y2="30" stroke="#ffb700" stroke-width="2" marker-end="url(#arr2)"/>
+      <defs><marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#ffb700"/>
+      </marker></defs>
+      <text x="140" y="65" text-anchor="middle" fill="#ffb700" font-size="9" font-family="Cairo,sans-serif">e⁻ ينتقل</text>
+    </svg>`;
+  }
+
+  document.querySelectorAll('#stage3-options .option-btn').forEach(b => {
+    b.disabled = false;
+    b.classList.remove('correct', 'wrong');
+  });
+  document.getElementById('stage3-feedback').classList.remove('show');
+  document.getElementById('retry-stage3').style.display = 'none';
+  document.getElementById('next-stage3').style.display = 'none';
+  stage3Attempt = 1;
+}
+
+function checkStage3(btn, type) {
+  const q = stage3Questions[stage3Current - 1];
+  document.querySelectorAll('#stage3-options .option-btn').forEach(o => o.disabled = true);
+  const feedback = document.getElementById('stage3-feedback');
+
+  if (type === q.correct) {
+    btn.classList.add('correct');
+    const pts = stage3Attempt === 1 ? 10 : 6;
+    score += pts;
+    updateScore();
+    feedback.className = 'feedback-box success show';
+    feedback.innerHTML = q.feedbackCorrect + ` حصلت على <strong>${pts} نقاط</strong>!`;
+    announce(`إجابة صحيحة! ${pts} نقاط.`);
+    document.getElementById('next-stage3').style.display = 'inline-flex';
+    document.getElementById('retry-stage3').style.display = 'none';
+    setTimeout(() => document.getElementById('next-stage3').focus(), 100);
+    flashEffect('card-stage3', true);
+    showBubbles(); showStars();
+  } else {
+    btn.classList.add('wrong');
+    feedback.className = 'feedback-box error show';
+    feedback.innerHTML = q.feedbackWrong;
+    if (stage3Attempt === 1) {
+      announce('إجابة خاطئة. راجع الشرح وحاول مرة أخرى.');
+      document.getElementById('retry-stage3').style.display = 'inline-flex';
+      setTimeout(() => document.getElementById('retry-stage3').focus(), 100);
+      stage3Attempt = 2;
+    } else {
+      announce('يمكنك المتابعة إلى السؤال التالي.');
+      document.getElementById('next-stage3').style.display = 'inline-flex';
+    }
+    flashEffect('card-stage3', false);
+  }
+}
+
+function retryStage3() {
+  document.querySelectorAll('#stage3-options .option-btn').forEach(b => {
+    b.disabled = false;
+    b.classList.remove('correct', 'wrong');
+  });
+  document.getElementById('stage3-feedback').classList.remove('show');
+  document.getElementById('retry-stage3').style.display = 'none';
+}
+
+function nextStage3Q() {
+  if (stage3Current === 1) {
+    stage3Current = 2;
+    renderStage3(1);
+    document.getElementById('next-stage3').textContent = 'التالي ←';
+    document.getElementById('next-stage3').onclick = () => {
+      earnBadge('bonds');
+      goToStage(4);
+    };
+  } else {
+    earnBadge('bonds');
+    goToStage(4);
+  }
+}
+
+// ===== المرحلة الرابعة =====
+let stage4Attempt = 1;
+
+function checkStage4(btn, val) {
+  document.querySelectorAll('#coeff-options .coeff-btn').forEach(b => {
+    b.disabled = true;
+    b.classList.remove('selected');
+  });
+  btn.classList.add('selected');
+  const feedback = document.getElementById('stage4-feedback');
+
+  if (val === '2') {
+    btn.style.borderColor = 'var(--neon-green)';
+    btn.style.color = 'var(--neon-green)';
+    const pts = stage4Attempt === 1 ? 10 : 6;
+    score += pts;
+    updateScore();
+    feedback.className = 'feedback-box success show';
+    feedback.innerHTML = `✅ <strong>صحيح!</strong> المعادلة الموزونة: 2H₂ + O₂ → 2H₂O.
+      <div class="feedback-explain">💡 وفق قانون حفظ الكتلة: على اليسار 4 ذرات H و2 ذرة O. على اليمين 4 ذرات H و2 ذرة O. متوازن! ✓</div>
+      حصلت على <strong>${pts} نقاط</strong>!`;
+    announce(`إجابة صحيحة! المعامل الصحيح هو 2. حصلت على ${pts} نقاط.`);
+    document.getElementById('balanced-eq').style.display = 'block';
+    document.getElementById('next-stage4').style.display = 'inline-flex';
+    document.getElementById('retry-stage4').style.display = 'none';
+    setTimeout(() => document.getElementById('next-stage4').focus(), 100);
+    flashEffect('card-stage4', true);
+    showBubbles(); showStars();
+    earnBadge('balance');
+  } else {
+    btn.style.borderColor = 'var(--danger)';
+    btn.style.color = 'var(--danger)';
+    if (stage4Attempt === 1) {
+      feedback.className = 'feedback-box error show';
+      feedback.innerHTML = `❌ تلميح: عدّ ذرات الأكسجين على طرفَي المعادلة.
+        <div class="feedback-explain">O₂ يحتوي على ذرتين أكسجين في اليسار، وكل H₂O يحتوي على ذرة واحدة. كم جزيء H₂O نحتاج لتوازن ذرتَي O؟</div>`;
+      announce('إجابة خاطئة. راجع التلميح وحاول مرة أخرى.');
+      document.getElementById('retry-stage4').style.display = 'inline-flex';
+      setTimeout(() => document.getElementById('retry-stage4').focus(), 100);
+      stage4Attempt = 2;
+    } else {
+      feedback.className = 'feedback-box error show';
+      feedback.innerHTML = `❌ الجواب الصحيح هو <strong>2</strong>. المعادلة الموزونة: 2H₂ + O₂ → 2H₂O. يمكنك المتابعة.`;
+      announce('الإجابة الصحيحة هي 2. يمكنك المتابعة.');
+      document.getElementById('balanced-eq').style.display = 'block';
+      document.getElementById('next-stage4').style.display = 'inline-flex';
+      document.getElementById('retry-stage4').style.display = 'none';
+    }
+    flashEffect('card-stage4', false);
+  }
+}
+
+function retryStage4() {
+  document.querySelectorAll('#coeff-options .coeff-btn').forEach(b => {
+    b.disabled = false;
+    b.classList.remove('selected');
+    b.style.borderColor = '';
+    b.style.color = '';
+  });
+  document.getElementById('stage4-feedback').classList.remove('show');
+  document.getElementById('retry-stage4').style.display = 'none';
+}
+
+// ===== المرحلة الخامسة =====
+let stage5Attempt = 1;
+
+function checkStage5(btn, isCorrect) {
+  document.querySelectorAll('#stage5-options .option-btn').forEach(b => b.disabled = true);
+  const feedback = document.getElementById('stage5-feedback');
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    const pts = stage5Attempt === 1 ? 10 : 6;
+    score += pts;
+    updateScore();
+    feedback.className = 'feedback-box success show';
+    feedback.innerHTML = `🎉 <strong>تم إنقاذ التفاعل بنجاح!</strong>
+      الرابطة في HCl تساهمية لأن H وCl يتشاركان إلكترونات.
+      المعادلة الموزونة الصحيحة: H₂ + Cl₂ → 2HCl.
+      <div class="feedback-explain">💡 لماذا 2HCl؟ H₂ يحتوي ذرتَي H، وCl₂ يحتوي ذرتَي Cl، لذا ينتج جزيئان من HCl.</div>
+      حصلت على <strong>${pts} نقاط</strong>!`;
+    announce(`مبروك! أجبت بشكل صحيح وحصلت على ${pts} نقاط.`);
+    document.getElementById('finish-btn').style.display = 'inline-flex';
+    document.getElementById('retry-stage5').style.display = 'none';
+    setTimeout(() => document.getElementById('finish-btn').focus(), 100);
+    flashEffect('card-stage5', true);
+    showBubbles(); showStars();
+  } else {
+    btn.classList.add('wrong');
+    if (stage5Attempt === 1) {
+      feedback.className = 'feedback-box error show';
+      feedback.innerHTML = `❌ راجع نوع الرابطة في HCl: هل ينتقل الإلكترون أم يُشارَك؟
+        <div class="feedback-explain">💡 تذكر: H ليس معدناً، لذا لا يتبرع بإلكترون. كلاهما لا معدن → يتشاركان.</div>
+        وتحقق من الموازنة: هل عدد ذرات H وCl متساوٍ على طرفَي المعادلة؟`;
+      announce('إجابة خاطئة. راجع التلميح وحاول مرة أخرى.');
+      document.getElementById('retry-stage5').style.display = 'inline-flex';
+      setTimeout(() => document.getElementById('retry-stage5').focus(), 100);
+      stage5Attempt = 2;
+    } else {
+      feedback.className = 'feedback-box error show';
+      feedback.innerHTML = `❌ الجواب الصحيح هو (ب). الرابطة تساهمية لأن H وCl يتشاركان إلكتروناً، والمعادلة الموزونة: H₂ + Cl₂ → 2HCl.`;
+      announce('الإجابة الصحيحة هي الخيار ب. يمكنك إكمال المهمة.');
+      document.getElementById('finish-btn').style.display = 'inline-flex';
+      document.getElementById('retry-stage5').style.display = 'none';
+    }
+    flashEffect('card-stage5', false);
+  }
+}
+
+function retryStage5() {
+  document.querySelectorAll('#stage5-options .option-btn').forEach(b => {
+    b.disabled = false;
+    b.classList.remove('correct', 'wrong');
+  });
+  document.getElementById('stage5-feedback').classList.remove('show');
+  document.getElementById('retry-stage5').style.display = 'none';
+}
+
+// ===== إنهاء اللعبة =====
+function finishGame() {
+  earnBadge('leader');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-end').classList.add('active');
+  document.getElementById('progress-bar').style.width = '100%';
+  document.getElementById('progress-bar').parentElement.setAttribute('aria-valuenow', '100');
+  document.getElementById('stage-indicator').textContent = '🏆 اكتملت المهمة!';
+
+  document.getElementById('end-name').textContent = studentName;
+  document.getElementById('end-score').textContent = score;
+  document.getElementById('cert-name-display').textContent = studentName;
+  document.getElementById('cert-date').textContent = `بتاريخ: ${new Date().toLocaleDateString('ar-SA')}`;
+
+  // رسالة تشجيعية مذكّر
+  let msg = '';
+  if (score >= 55)      msg = `🌟 أداء استثنائي يا ${studentName}! أنت عالم كيمياء من الدرجة الأولى. واصل التميّز!`;
+  else if (score >= 35) msg = `✨ عمل رائع يا ${studentName}! أظهرت فهماً جيداً لمفاهيم الكيمياء. استمر في التعلم!`;
+  else                  msg = `💪 شكراً على مشاركتك يا ${studentName}! كل تجربة تقربك أكثر من عالم الكيمياء المثير!`;
+  document.getElementById('end-message').textContent = msg;
+
+  // عرض الشارات
+  const badgesGrid = document.getElementById('end-badges');
+  badgesGrid.innerHTML = '';
+  badgeData.forEach(b => {
+    const earned = badges.includes(b.id);
+    badgesGrid.innerHTML += `<div class="badge ${earned ? 'earned' : 'locked'}" role="listitem" aria-label="${b.name}: ${earned ? 'مكتسبة' : 'غير مكتسبة'}">
+      <div class="badge-icon" aria-hidden="true">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`;
+  });
+
+  announce(`مبروك يا ${studentName}! أنهيت اللعبة بـ ${score} نقطة.`);
+  showStars();
+  setTimeout(() => { document.querySelector('#screen-end .btn-amber').focus(); }, 200);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== الشارات =====
+function earnBadge(id) {
+  if (badges.includes(id)) return;
+  badges.push(id);
+  const b = badgeData.find(x => x.id === id);
+  if (!b) return;
+  showBadgePopup(b);
+}
+
+function showBadgePopup(b) {
+  const popup = document.getElementById('badge-popup');
+  document.getElementById('badge-popup-icon').textContent = b.icon;
+  document.getElementById('badge-popup-name').textContent = b.name;
+  document.getElementById('badge-overlay').classList.add('show');
+  popup.classList.add('show');
+  popup.setAttribute('aria-hidden', 'false');
+  announce(`حصلت على شارة جديدة: ${b.name}!`);
+  setTimeout(() => {
+    document.getElementById('badge-overlay').classList.remove('show');
+    popup.classList.remove('show');
+    popup.setAttribute('aria-hidden', 'true');
+  }, 2500);
+}
+
+// ===== التأثيرات البصرية =====
+function flashEffect(cardId, success) {
+  const card = document.getElementById(cardId);
+  card.classList.remove('flash-correct', 'flash-wrong');
+  void card.offsetWidth;
+  card.classList.add(success ? 'flash-correct' : 'flash-wrong');
+  setTimeout(() => card.classList.remove('flash-correct', 'flash-wrong'), 700);
+}
+
+function showBubbles() {
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      b.setAttribute('aria-hidden', 'true');
+      const size = 10 + Math.random() * 20;
+      b.style.cssText = `width:${size}px;height:${size}px;left:${20+Math.random()*60}%;bottom:${20+Math.random()*30}%;animation-duration:${1+Math.random()*0.8}s;`;
+      document.body.appendChild(b);
+      setTimeout(() => b.remove(), 2000);
+    }, i * 150);
+  }
+}
+
+function showStars() {
+  const emojis = ['⭐','✨','🌟','💫'];
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const s = document.createElement('div');
+      s.className = 'star-particle';
+      s.setAttribute('aria-hidden', 'true');
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      const tx = (Math.random()-0.5) * 200;
+      const ty = -(50 + Math.random() * 150);
+      s.style.cssText = `left:${30+Math.random()*40}%;top:50%;--tx:${tx}px;--ty:${ty}px;`;
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1500);
+    }, i * 100);
+  }
+}
+
+// ===== شهادة الإتمام =====
+function downloadCertificate() {
+  const canvas = document.getElementById('certificate-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 800, H = 450;
+
+  ctx.fillStyle = '#050d1a';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(10, 10, W-20, H-20);
+  ctx.strokeStyle = '#00cfff';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(18, 18, W-36, H-36);
+
+  [[30,30],[W-30,30],[30,H-30],[W-30,H-30]].forEach(([x,y]) => {
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2);
+    ctx.fillStyle = '#ffb700'; ctx.fill();
+  });
+
+  for (let i = 0; i < 30; i++) {
+    ctx.fillStyle = `rgba(255,183,0,${Math.random()*0.4+0.1})`;
+    ctx.beginPath();
+    ctx.arc(Math.random()*W, Math.random()*H, Math.random()*2+0.5, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = '#00ff88';
+  ctx.font = 'bold 28px Cairo, Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('⭐ شهادة إتمام مهمة مختبر العناصر ⭐', W/2, 90);
+
+  ctx.strokeStyle = '#00cfff';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, 110); ctx.lineTo(W-80, 110); ctx.stroke();
+
+  ctx.fillStyle = '#a8c0d6';
+  ctx.font = '18px Cairo, Arial';
+  ctx.fillText('تُمنح هذه الشهادة لـ', W/2, 155);
+
+  ctx.fillStyle = '#ffb700';
+  ctx.font = 'bold 36px Cairo, Arial';
+  ctx.fillText(studentName, W/2, 205);
+
+  ctx.strokeStyle = '#ffb70066';
+  ctx.beginPath(); ctx.moveTo(200, 220); ctx.lineTo(W-200, 220); ctx.stroke();
+
+  ctx.fillStyle = '#a8c0d6';
+  ctx.font = '16px Cairo, Arial';
+  ctx.fillText('لإتمامه جميع مراحل لعبة مختبر العناصر الكيميائية', W/2, 260);
+  ctx.fillText('وإنقاذ التفاعل الكيميائي بنجاح 🧪', W/2, 285);
+
+  ctx.fillStyle = '#00cfff';
+  ctx.font = 'bold 22px Cairo, Arial';
+  ctx.fillText(`النقاط: ${score} نقطة`, W/2, 330);
+
+  ctx.fillStyle = '#a8c0d6';
+  ctx.font = '14px Cairo, Arial';
+  ctx.fillText(`بتاريخ: ${new Date().toLocaleDateString('ar-SA')}`, W/2, 365);
+
+  ctx.beginPath(); ctx.arc(W/2, 405, 20, 0, Math.PI*2);
+  ctx.strokeStyle = '#00ff88'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#00ff88';
+  ctx.font = '22px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('✓', W/2, 413);
+
+  const link = document.createElement('a');
+  link.download = `شهادة-${studentName}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ===== إعادة اللعب =====
+function restartGame() {
+  score = 0; badges = [];
+  stage1Attempt = 1;
+  stage3Current = 1; stage3Q1Done = false; stage3Q2Done = false;
+  stage4Attempt = 1; stage5Attempt = 1;
+  stage2Done = false; nucleusItems = []; orbitItems = [];
+  selectedDragWord = null;
+
+  document.querySelectorAll('.option-btn, .coeff-btn').forEach(b => {
+    b.disabled = false;
+    b.classList.remove('correct', 'wrong', 'selected');
+    b.style.borderColor = ''; b.style.color = '';
+  });
+  document.querySelectorAll('.feedback-box').forEach(f => f.classList.remove('show'));
+  document.querySelectorAll('[id^="next-"], [id^="retry-"], #finish-btn').forEach(b => b.style.display = 'none');
+  document.getElementById('balanced-eq').style.display = 'none';
+
+  resetStage2();
+  renderStage3(0);
+  document.getElementById('next-stage3').onclick = nextStage3Q;
+
+  document.getElementById('game-header').style.display = 'none';
+  document.getElementById('header-score').textContent = '0';
+  document.getElementById('progress-bar').style.width = '0%';
+  document.querySelectorAll('.stage-dot').forEach(d => d.classList.remove('active', 'done'));
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-start').classList.add('active');
+  announce('تم إعادة اللعبة. أدخل اسمك للبدء.');
+  setTimeout(() => document.getElementById('student-name').focus(), 100);
+  window.scrollTo(0, 0);
+}
+
+// ===== تهيئة المرحلة الثالثة =====
+renderStage3(0);
+
+// ===== دعم الكيبورد لمناطق الإفلات =====
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('keydown', function(e) {
+      if ((e.key === 'Enter' || e.key === ' ') && selectedDragWord) {
+        e.preventDefault();
+        const zoneType = this.id === 'zone-nucleus' ? 'nucleus' : 'orbit';
+        placeWord(selectedDragWord, zoneType);
+        document.querySelectorAll('.drag-word').forEach(w => w.classList.remove('selected-for-place'));
+        selectedDragWord = null;
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
